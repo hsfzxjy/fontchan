@@ -1,0 +1,20 @@
+work_dir = "."
+
+[builder.js]
+output_path = "./out.js"
+
+[partition]
+part_size = 200
+pages = "glob[D:/srcs/hsfzxjy.github.io/public/**/*.html]"
+
+[[fonts]]
+input_path = "LXGWNeoXiHei.woff"
+output_tmpl = "XH_<FID>.woff2"
+
+[fonts.css]
+src = """src: url("<ORIGIN>/XH_<FID>.woff2") format("woff2");"""
+ext = """
+font-family: "test-font";
+font-weight: normal;
+font-display: swap;
+"""

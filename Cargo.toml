@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "fontchan",
+    "fontchan-decoder-wasm",
+    "fontchan-codec",
+    "fontchan-unicode",
+    "fontchan-wasm-mutate", "fontchan-partition", "fontchan-util",
+]
+resolver = "2"
