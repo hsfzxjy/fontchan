@@ -1,0 +1,13 @@
+[package]
+name = "fontchan-partition"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+allsorts = "0.15.0"
+anyhow = "1.0.91"
+fontchan-unicode = { version = "0.1.0", path = "../fontchan-unicode" }
+fontchan-util = { version = "0.1.0", path = "../fontchan-util" }
+glob = "0.3.1"
+rayon = "1.10.0"
+serde = "1.0.215"
