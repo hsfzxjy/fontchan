@@ -1,0 +1,9 @@
+[package]
+name = "fontchan-unicode"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.91"
+digest = "0.10.7"
+fontchan-util = { version = "0.1.0", path = "../fontchan-util" }
