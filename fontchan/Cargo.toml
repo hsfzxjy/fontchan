@@ -12,12 +12,8 @@ fontchan-codec = { path = "../fontchan-codec", features = ["has-std"] }
 fontchan-wasm-mutate = { path = "../fontchan-wasm-mutate" }
 fontchan-partition = { path = "../fontchan-partition" }
 clap = { version = "4.5.20", features = ["derive"] }
-clap_derive = "4.5.18"
 serde = { version = "1.0.214", features = ["alloc", "derive", "rc"] }
 toml = "0.8.19"
-digest = "0.10.7"
-sha2 = "0.10.8"
 base64ct = { version = "1.6.0", features = ["alloc"] }
-json = "0.12.4"
 serde_json = "1.0.132"
 fontchan-util = { version = "0.1.0", path = "../fontchan-util" }

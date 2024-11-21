@@ -222,6 +222,7 @@ impl UpdateInto for PyftBackend {
     fn update_into(&self, hasher: &mut dyn Hasher) {
         hasher.update(b"pyftsubset");
         hasher.update(b"--ignore-missing-glyphs");
+        hasher.update(b"--no-subset-tables+=FFTM");
     }
 }
 
@@ -256,6 +257,7 @@ impl Backend for PyftBackend {
                     .collect::<OsString>(),
             )
             .arg("--ignore-missing-glyphs")
+            .arg("--no-subset-tables+=FFTM")
             .spawn()?;
         let status = p.wait()?;
         if !status.success() {

@@ -7,7 +7,6 @@ edition = "2021"
 anyhow = "1.0.93"
 base64ct = { version = "1.6.0", features = ["alloc"] }
 digest = "0.10.7"
-generic-array = "1.1.0"
 serde = "1.0.215"
 sha2 = "0.10.8"
 tempfile = "3.14.0"

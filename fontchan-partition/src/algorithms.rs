@@ -1,8 +1,5 @@
 use std::{
-    borrow::Cow,
-    collections::{HashMap, HashSet},
-    sync::LazyLock,
-    usize,
+    borrow::Cow, collections::{HashMap, HashSet}, isize, sync::LazyLock, usize
 };
 
 use anyhow::Result;
@@ -67,6 +64,11 @@ impl SortByOccurrence {
         chars.sort_unstable();
         do_partition_exact(chars.into_iter().map(|(_, c)| c), num)
     }
+    fn lift_ascii<T: Copy>(stats: &mut HashMap<char, T>, value: T) {
+        for char in '\u{0}'..='\u{ff}' {
+            stats.entry(char).and_modify(|f| *f = value);
+        }
+    }
     fn case_with_pages_generic(
         num: usize,
         pages: Cow<[Page]>,
@@ -90,6 +92,7 @@ impl SortByOccurrence {
         for ch in pages.iter().flatten() {
             stats.entry(*ch).and_modify(|f| *f = (*f).min(0) - 1);
         }
+        Self::lift_ascii(&mut stats, isize::MIN);
         let mut chars: Vec<_> = stats.into_iter().map(|(c, f)| (f, c)).collect();
         chars.sort_unstable();
         do_partition_exact(chars.into_iter().map(|(_, c)| c), num)
