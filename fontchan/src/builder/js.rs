@@ -37,7 +37,7 @@ impl Builder {
         ranges: impl Iterator<Item = &'r URange>,
         font_results: &FontResults,
     ) -> Result<()> {
-        use fontchan_codec::partition_encode::*;
+        use fontchan_codec::*;
 
         let range_data = encode_urange_data(ranges)?;
         let fid_data = encode_fid_data(font_results.entry_minor_iter().map(|r| r.fid.as_str()))?;

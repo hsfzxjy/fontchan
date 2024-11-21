@@ -1,0 +1,13 @@
+[package]
+name = "fontchan-codec"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0.91", optional = true }
+fontchan-unicode = { path = "../fontchan-unicode", optional = true }
+integer-encoding = { version = "4.0.2", optional = true }
+
+[features]
+has-std = ["fontchan-unicode", "integer-encoding", "anyhow"]
+default = ["has-std"]
