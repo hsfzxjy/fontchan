@@ -1,7 +1,7 @@
 use anyhow::Result;
 use base64ct::Encoding;
 use fontchan_unicode::URange;
-use fontchan_util::AtomicPath;
+use fontchan_util::{AtomicPath, Digester};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -18,7 +18,8 @@ paramdef!(
     JSTmplParams,
     js_params,
     wasm_base64 = "\"{%WASM_BASE64%}\"",
-    font_specs = "\"{%FONT_SPECS%}\""
+    font_specs = "\"{%FONT_SPECS%}\"",
+    sha = "\"{%SHA%}\""
 );
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -59,9 +60,15 @@ impl Builder {
             fontchan_wasm_mutate::get_wasm_binary(&range_data, &fid_data, estimated_heap_size);
         let font_specs_bin = json!(fragments).to_string();
 
+        let sha = Digester::new()
+            .push(&wasm_bin)
+            .push(font_specs_bin.as_bytes())
+            .base64_result();
+
         let js = JS_TEMPLATE.render(&js_params!(
             wasm_base64 = base64ct::Base64::encode_string(&wasm_bin),
-            font_specs = font_specs_bin
+            font_specs = font_specs_bin,
+            sha = sha.as_ref()
         ));
 
         let dest = dest.into_writable()?;

@@ -143,7 +143,7 @@ impl<C: DecoderContext> Decoder<C> {
                 prev = codepoint;
             }
             let n_ranges = urange_list.read_varint();
-            if n_single != 0 {
+            if n_single != 0 && n_ranges != 0 {
                 out = out.write_bytes(b",");
             }
             prev = 0;

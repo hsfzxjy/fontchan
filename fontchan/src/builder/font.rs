@@ -128,6 +128,9 @@ impl Builder {
         entries: impl IntoParallelIterator<Item = UEntry<'a>>,
     ) -> Result<BuildResults<'a>> {
         let contexts = &self.contexts;
+        for ctx in contexts {
+            fs::create_dir_all(&ctx.dest_tmpl.directory)?;
+        }
         let his = History::new(contexts)?;
         let history = &his;
         entries
@@ -202,7 +205,8 @@ impl<'a> BuildResults<'a> {
 static BACKEND_REGISTRY: LazyLock<Registry<(), dyn Backend, Req>> = LazyLock::new(|| {
     Registry::new()
         .add("pyft", factory!(PyftBackend))
-        .with_default(routine!("pyft"))
+        .add("harfbuzz", factory!(HarfbuzzBackend))
+        .with_default(routine!("harfbuzz"))
 });
 
 trait Backend: Sync {
@@ -216,13 +220,99 @@ trait Backend: Sync {
 }
 autobox!(Backend);
 
+pub struct HarfbuzzBackend;
+
+impl UpdateInto for HarfbuzzBackend {
+    fn update_into(&self, hasher: &mut dyn Hasher) {
+        hasher.update(b"harfbuzz_rs_now");
+    }
+}
+
+fn smart_load_font(data: &[u8]) -> Cow<[u8]> {
+    use std::borrow::Cow;
+
+    const WOFF_MAGIC: [u8; 4] = [0x77, 0x4F, 0x46, 0x46];
+    const WOFF2_MAGIC: [u8; 4] = [0x77, 0x4F, 0x46, 0x32];
+
+    fn is_woff(data: &[u8]) -> bool {
+        data.starts_with(&WOFF_MAGIC)
+    }
+    fn is_woff2(data: &[u8]) -> bool {
+        data.starts_with(&WOFF2_MAGIC)
+    }
+    if is_woff2(data) {
+        Cow::Owned(woff::version2::decompress(data).expect("illegal woff2 file"))
+    } else if is_woff(data) {
+        Cow::Owned(woff::version1::decompress(data).expect("illegal woff file"))
+    } else {
+        Cow::Borrowed(data)
+    }
+}
+
+fn smart_save_font(data: Cow<[u8]>, path: impl AsRef<OsStr>) -> Cow<[u8]> {
+    let path = path.as_ref().to_string_lossy();
+    if path.ends_with("woff2") {
+        Cow::Owned(
+            woff::version2::compress(&data, String::new(), 1, true)
+                .expect("fail to compress woff2"),
+        )
+    } else if path.ends_with("woff") {
+        Cow::Owned(woff::version1::compress(&data, 0, 0).expect("fail to compress woff"))
+    } else {
+        data
+    }
+}
+
+impl Backend for HarfbuzzBackend {
+    fn characteristics(&self) -> &dyn UpdateInto {
+        self
+    }
+    fn do_subset<'a>(
+        &self,
+        ctx: &Context,
+        dest_info: &mut DestInfo,
+        entry: Arc<UEntry<'a>>,
+    ) -> Result<()> {
+        use harfbuzz_rs_now::subset::Subset;
+        use harfbuzz_rs_now::Face;
+        let subset = Subset::new();
+        subset.clear_drop_table();
+        subset.adjust_layout();
+        let chars = entry
+            .range
+            .as_chars()
+            .map(|ch| ch as u32)
+            .collect::<Vec<_>>();
+        subset.add_chars(&chars);
+        let file_bytes = ctx
+            .source
+            .file()
+            .content()
+            .map_err(|reason| anyhow!("fail to open file: {:?}", reason))?;
+        let font_bytes = smart_load_font(file_bytes);
+        let face = Face::from_bytes(&font_bytes, 0);
+        let new_face = subset.run_subset(&face);
+        let new_face_data = new_face.face_data();
+        let new_binary = smart_save_font(
+            Cow::Borrowed(new_face_data.get_data()),
+            &dest_info.file_path,
+        );
+        {
+            let file_guard = dest_info.as_writable()?;
+            fs::write(file_guard.path(), new_binary)?;
+            file_guard.commit()?;
+        }
+        Ok(())
+    }
+}
+
 pub struct PyftBackend;
 
 impl UpdateInto for PyftBackend {
     fn update_into(&self, hasher: &mut dyn Hasher) {
         hasher.update(b"pyftsubset");
         hasher.update(b"--ignore-missing-glyphs");
-        hasher.update(b"--no-subset-tables+=FFTM");
+        hasher.update(b"--no-subset-tables+=FFTM,morx,feat");
     }
 }
 
@@ -257,7 +347,7 @@ impl Backend for PyftBackend {
                     .collect::<OsString>(),
             )
             .arg("--ignore-missing-glyphs")
-            .arg("--no-subset-tables+=FFTM")
+            .arg("--no-subset-tables+=FFTM,morx,feat")
             .spawn()?;
         let status = p.wait()?;
         if !status.success() {

@@ -78,3 +78,9 @@ where
         Self(str.into_boxed_str())
     }
 }
+
+impl AsRef<str> for DigestString {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
+    }
+}

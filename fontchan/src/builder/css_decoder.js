@@ -5,6 +5,7 @@
   const textEncoder = new TextEncoder();
   const wasmDataUrl = 'data:application/wasm;base64,"{%WASM_BASE64%}"';
   const fontSpecs = "{%FONT_SPECS%}";
+  const sha = '"{%SHA%}"';
   for (const spec of fontSpecs) {
     spec.src_template = spec.src.replace(/<ORIGIN>/g, origin).split("<FID>");
   }
@@ -59,7 +60,6 @@
       }
     }
   }
-  global.$fontchanDecodeCss = decodeCss;
   async function injectCss() {
     if (injectCss.__started) return;
     injectCss.__started = true;
@@ -69,5 +69,9 @@
     link.href = URL.createObjectURL(new Blob([cssData], { type: "text/css" }));
     document.head.appendChild(link);
   }
-  global.$fontchanInjectCss = injectCss;
+  global.$fontchan = {
+    decodeCss: decodeCss,
+    injectCss: injectCss,
+    sha: sha,
+  };
 })();

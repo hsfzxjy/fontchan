@@ -141,7 +141,7 @@ macro_rules! paramdef {
         macro_rules! $builder {
             ($d ($d f: ident = $d v:expr),*) => {
                 $name {
-                    $d ($d f: $d v.into()),*
+                    $d ($d f: $d v.into(),)*
                 }
             };
         }

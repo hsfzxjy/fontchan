@@ -1,5 +1,9 @@
 use std::{
-    borrow::Cow, collections::{HashMap, HashSet}, isize, sync::LazyLock, usize
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+    isize,
+    sync::LazyLock,
+    usize,
 };
 
 use anyhow::Result;
@@ -24,6 +28,7 @@ fn do_partition(mut iter: impl Iterator<Item = char>, len: usize, num: usize) ->
             chunk_size += residual;
         }
         let str = iter.by_ref().take(chunk_size).collect::<String>();
+        // println!("{i} => {str}");
         res.push(URangeBuilder::from_chars(str.chars()).build());
     }
     return res;

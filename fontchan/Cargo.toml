@@ -17,3 +17,5 @@ toml = "0.8.19"
 base64ct = { version = "1.6.0", features = ["alloc"] }
 serde_json = "1.0.132"
 fontchan-util = { version = "0.1.0", path = "../fontchan-util" }
+harfbuzz_rs_now = "2.3.0"
+woff = "0.6.1"
